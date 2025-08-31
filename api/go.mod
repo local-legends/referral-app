@@ -1,4 +1,4 @@
-module github.com/local-legends/referral-app/api
+module github.com/local-legends/referral-app
 
 go 1.20
 
