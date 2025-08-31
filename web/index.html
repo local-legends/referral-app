@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Link Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        input, button { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007cba; color: white; cursor: pointer; }
+        button:hover { background: #005a87; }
+        .link-item { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .short-url { font-weight: bold; color: #007cba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Referral Link Manager</h1>
+        
+        <div>
+            <h3>Create New Link</h3>
+            <input type="text" id="referrerId" placeholder="Referrer ID" />
+            <input type="text" id="slug" placeholder="Link Slug" />
+            <button onclick="createLink()">Create Link</button>
+        </div>
+
+        <div>
+            <h3>Existing Links</h3>
+            <button onclick="loadLinks()">Refresh Links</button>
+            <div id="linksList"></div>
+        </div>
+    </div>
+
+    <script>
+        async function createLink() {
+            const referrerId = document.getElementById('referrerId').value;
+            const slug = document.getElementById('slug').value;
+            
+            if (!referrerId || !slug) {
+                alert('Please fill both fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/links', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ referrerId, slug })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('referrerId').value = '';
+                    document.getElementById('slug').value = '';
+                    loadLinks();
+                } else {
+                    alert('Error creating link');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function loadLinks() {
+            try {
+                const response = await fetch('/api/links');
+                const links = await response.json();
+                
+                const linksList = document.getElementById('linksList');
+                linksList.innerHTML = links.map(link => `
+                    <div class="link-item">
+                        <div><strong>Referrer:</strong> ${link.referrerId}</div>
+                        <div><strong>Short URL:</strong> <span class="short-url">${link.shortUrl}</span></div>
+                        <div><strong>Clicks:</strong> ${link.clicks}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading links:', error);
+            }
+        }
+
+        // Load links when page loads
+        loadLinks();
+    </script>
+</body>
+</html>
